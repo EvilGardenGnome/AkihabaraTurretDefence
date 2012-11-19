@@ -1,0 +1,49 @@
+NOTE: Images have spaces around them equaly distributed. This is for proper display if cliping equal parts of the sheet.
+Do not modify images except to scale them but keep them as they are - otherwise sheets won't match anymore.
+
+
+base.png
+----------------------
+4 different stages of base. additional fire images on the right side need to be disected and could be added in different spots to make smoother transition between stages of damaged base.
+If we need image for base upgrade I can do it, but for now there is only four images of which the first one is undamaged base, as the base takes damage we would add small fires to different parts, then at certain point use second image displaying lots of damage, and then adding more fires until we decide its time for image three, and then in the same way for image 4.
+
+
+friendly_tower_1.png
+----------------------
+non-upgraded version of tower i.e. basic tower. Base is fixed around the same point, so the only difference is cannon pointing to different direction in each image.
+
+
+friendly_tower_2.png
+----------------------
+upgraded version of tower1.
+
+
+enemy_1_tank.png
+----------------------
+represents enemy tank. base is fixed, similar to tower 1 cannon points to eight different directions.
+
+
+enemy_2_weird'o_copter.png
+----------------------
+represents enemy helicopter. low flying vehicle with fixed base and propeler is having different position in each image creating ilussion of moving rotor blades.
+
+
+enemy_3_destro-car.png
+----------------------
+fixed base, cannon pointing in different direction for each image.
+
+ammo_rocket_small.png
+----------------------
+type of ammo. three different flames behind the fixed position rocket to make rocket appear as if it flying... This is smaller type of rocket.
+
+ammo_rocket_huge.png
+----------------------
+similar to above, but this is huge rocket...
+
+ammo_missile_regular
+----------------------
+this could be used as a regular gun shell i.e. unlimited ammo...
+
+ammo_missile_huge.png and ammo_missile_huge_2.png
+----------------------
+At first I designed it as mortart shell, but then it could be used as a third rocket type, or helicopter drop... I made inverted version of it as _2

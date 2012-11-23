@@ -1,0 +1,26 @@
+Spritework:
+- Base Command [32x32] {looks busy and complex}
+- Tank Enemy [24x24 *2] {in motion}
+- Soldier Enemy [24x24 *2] {in motion}
+- Plane Enemy [24x24 *2] {in motion}
+- Turret: [24x40]*2 {idle, firing}
+
+
+Audio:
+- Base damage
+- Turret fire {machine gun}
+- Tank explosion
+- Plane explosion
+- Soldier death
+
+
+World Design:
+- Design spritesheet for levels 1-5
+- Design spritesheet for levels 6-10
+- Design spritesheet for levels 11-15
+
+
+Level Design:
+- Design maps {1,2,3,4,5}
+- Design maps {6,7,8,9,10}
+- Design maps {11,12,13,14,15}

@@ -1,0 +1,32 @@
+fucntion targetFodder(fodders, turret){
+
+	//var fodderPosition=help.getTileInMap(fodder.x+fodder.hw,fodder.y+fodder.hh,map,0);
+	//var turretPosition=help.getTileInMap(turret.x+(turret.hw + 16),turret.y+(turret.hh + 16),map,0); //just test that it 16 pixels from the center of turret
+
+	//if(gbox.collides(fodderPosition,turretPosition,0))
+	//{
+	//	addShell(data);
+	//}
+	var shotDelay = 0;
+
+	var minRangeToFire //minimum distance fodder is from turret for shell to be fired
+
+	for(int x = 0;x < fodders.length; x++)//loop through all fodder
+	var targetDistance = trigo.getDistance(fodders[x], turret){//get distance of fodder to turret
+		if(targetDistance <= minRangeToFire){// test if it within the minimum distance from fodder
+			if (shotDelay == 20){
+				//addShell(fodder, turrets);
+				//shell_id++;//shell_id static variable that increment everytime addShell called
+				shotDelay = 0;
+			}
+			shotDelay++;
+		}
+	}
+}
+
+function angleTurretFace(){
+	var angle = trigo.getAngle(turret, fodder);
+	
+	turret.frame = Math.floor((angle - 22.5)/45) % 8;
+
+}

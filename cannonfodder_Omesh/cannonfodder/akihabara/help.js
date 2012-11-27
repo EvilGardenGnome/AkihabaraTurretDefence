@@ -517,13 +517,13 @@ var help={
 	akihabaraInit:function(data) {
 		if ((typeof data).toLowerCase() == "string") data={title:data};
 		var device=this.getDeviceConfig();
-		var footnotes=["MADE WITH AKIHABARA (C)2010 - GPL2/MIT","Project: www.kesiev.com/akihabara","Sources: github.com/kesiev/akihabara"];
+		//var footnotes=["MADE WITH AKIHABARA (C)2010 - GPL2/MIT","Project: www.kesiev.com/akihabara","Sources: github.com/kesiev/akihabara"];
 		document.title=(data.title?data.title:"Akihabara");
-		if (data.splash) {
-			if (data.splash.footnotes) 
-				for (var i=0;i<footnotes.length;i++) data.splash.footnotes.push(footnotes[i]);
-			gbox.setSplashSettings(data.splash);
-		}
+		//if (data.splash) {
+		//	if (data.splash.footnotes) 
+		//		for (var i=0;i<footnotes.length;i++) data.splash.footnotes.push(footnotes[i]);
+		//	gbox.setSplashSettings(data.splash);
+		//}
 		var screenwidth=(data.width?data.width:(data.portrait?240:320));
 		var screenheight=(data.height?data.height:(data.portrait?320:240));
 		if (device.iswii) {
@@ -538,9 +538,9 @@ var help={
 			};
 			document.onkeypress= function(e){ if (e.preventDefault) e.preventDefault(); return false};
 		}
-		if (!data.splash||(data.splash.minilogo==null)) gbox.setSplashSettings({minilogo:"logo"});
-		if (!data.splash||(data.splash.background==null)) gbox.setSplashSettings({background:"akihabara/splash.png"});
-		if (!data.splash||(data.splash.minimalTime==null)) gbox.setSplashSettings({minimalTime:3000});
+		// if (!data.splash||(data.splash.minilogo==null)) gbox.setSplashSettings({minilogo:"logo"});
+		if (!data.splash||(data.splash.background==null)) gbox.setSplashSettings({background:"akihabara/logo.png"});
+		if (!data.splash||(data.splash.minimalTime==null)) gbox.setSplashSettings({minimalTime:6000});
 		if (!data.splash||(data.splash.footnotes==null)) gbox.setSplashSettings({footnotes:footnotes});
 		if (!data||!data.hardwareonly) {
 			document.body.style.backgroundColor="#000000";

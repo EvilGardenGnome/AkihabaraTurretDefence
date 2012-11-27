@@ -1,0 +1,666 @@
+<html>
+<head>
+	<script type='text/javascript' src='akihabara/gbox.js'></script>
+	<script type='text/javascript' src='akihabara/trigo.js'></script>
+	<script type='text/javascript' src='akihabara/toys.js'></script>
+	<script type='text/javascript' src='akihabara/help.js'></script>
+	<script type='text/javascript' src='akihabara/tool.js'></script>
+	<script type='text/javascript' src='akihabara/gamecycle.js'></script>
+	<style>BODY { -webkit-user-select:none; margin:0px}</style>
+	<meta name='viewport' content='width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;' />
+</head>
+<body>
+</body>
+<script>
+	
+	// =========================================================================================
+	// Levels, dialogues and the maingame object.
+	// =========================================================================================
+	var maingame; 	// Object handling the full play cycle
+	var map; 		// The map array
+	
+	// -----------------------------------------------------------------------------------------		
+	// Load all the needed resources (using window's 'onLoad' event)
+	// -----------------------------------------------------------------------------------------
+	gbox.onLoad(function () {
+	
+		// -----------------------------------------------------------------------------------------
+		// Akihabara is initialized with title and all the default settings.
+		// -----------------------------------------------------------------------------------------
+		help.akihabaraInit({ 
+			title:'Tower Defense', // ... Just changing the game title...
+			splash:{footnotes:['Music and sound effects from SoundBible.com.','Graphics Design by Samir Suljkanovic.']},
+			width: 640,
+			height: 480,
+			zoom: 1
+		}); 
+
+		// -----------------------------------------------------------------------------------------
+		// Load images/sprite sheets
+		// -----------------------------------------------------------------------------------------
+		gbox.addImage('a_bullet','resources/tdsprites/a_bullet.png');
+		gbox.addImage('a_mortar','resources/tdsprites/a_mortar.png');
+		gbox.addImage('a_rocket_lg','resources/tdsprites/a_rocket_lg.png');
+		gbox.addImage('a_rocket_sm','resources/tdsprites/a_rocket_sm.png');
+		gbox.addImage('base','resources/tdsprites/base.png');
+		gbox.addImage('e_copter','resources/tdsprites/e_copter.png');
+		gbox.addImage('e_dcar','resources/tdsprites/e_dcar.png');
+		gbox.addImage('e_tank','resources/tdsprites/e_tank.png');
+		gbox.addImage('font','resources/tdsprites/font.png');
+		gbox.addImage('logo','resources/tdsprites/logo.png');
+		gbox.addImage('twr_lev_one','resources/tdsprites/tower_lvl_one.png');
+		gbox.addImage('twr_lev_two','resources/tdsprites/tower_lvl_two.png');
+					
+		// -----------------------------------------------------------------------------------------
+		// Load font (image) (Setting the first letter, the letter size, the length of all rows of letters and a horizontal/vertical gap.)
+		// Sometime you can find pixel fonts with multiple colors, one per row/block. 
+		// You can map multiple fonts on the same image, so create many fonts, one for each color.
+		// -----------------------------------------------------------------------------------------
+		gbox.addFont({id:'small',image:'font',firstletter:' ',tileh:8,tilew:8,tilerow:255,gapx:0,gapy:0}); 
+		
+		// -----------------------------------------------------------------------------------------
+		// Sprites sheets are cut here. Setting the tile size, the number of sprites per row and the gap of the frames set.
+		// -----------------------------------------------------------------------------------------
+		// Regular ammo image
+		gbox.addTiles({id:'ammo_bullet',image:'a_bullet',tileh:7,tilew:24,tilerow:1,gapx:0,gapy:0});
+		// Mortar round ammo image
+		gbox.addTiles({id:'ammo_mortar',image:'a_mortar',tileh:11,tilew:59,tilerow:1,gapx:0,gapy:0});
+		// Large rocket image
+		gbox.addTiles({id:'ammo_rocket_lg',image:'a_rocket_lg',tileh:24,tilew:155,tilerow:1,gapx:0,gapy:0}); 
+		// Small rocket image
+		gbox.addTiles({id:'ammo_rocket_sm',image:'a_rocket_sm',tileh:10,tilew:81,tilerow:1,gapx:0,gapy:0}); 
+		// The base image (sprite sheet)
+		gbox.addTiles({id:'base',image:'base',tileh:385,tilew:226,tilerow:4,gapx:0,gapy:0});
+		// gbox.addTiles({id:'base_1',image:'base',tileh:385,tilew:226,tilerow:4,gapx:0,gapy:0});
+		// gbox.addTiles({id:'base_2',image:'base',tileh:385,tilew:226,tilerow:4,gapx:385,gapy:0});
+		// gbox.addTiles({id:'base_3',image:'base',tileh:385,tilew:226,tilerow:4,gapx:770,gapy:0});
+		// gbox.addTiles({id:'base_4',image:'base',tileh:385,tilew:226,tilerow:4,gapx:1155,gapy:0});
+		// Enemy helicopter image (sprite sheet)
+		gbox.addTiles({id:'enemy1',image:'e_copter',tileh:200,tilew:200,tilerow:8,gapx:0,gapy:0}); 
+		// gbox.addTiles({id:'img_e_copter1',image:'e_copter',tileh:200,tilew:200,tilerow:8,gapx:0,gapy:0}); 
+		// gbox.addTiles({id:'img_e_copter2',image:'e_copter',tileh:200,tilew:200,tilerow:8,gapx:200,gapy:0}); 
+		// gbox.addTiles({id:'img_e_copter3',image:'e_copter',tileh:200,tilew:200,tilerow:8,gapx:400,gapy:0}); 
+		// gbox.addTiles({id:'img_e_copter4',image:'e_copter',tileh:200,tilew:200,tilerow:8,gapx:600,gapy:0}); 
+		// gbox.addTiles({id:'img_e_copter5',image:'e_copter',tileh:200,tilew:200,tilerow:8,gapx:800,gapy:0}); 
+		// gbox.addTiles({id:'img_e_copter6',image:'e_copter',tileh:200,tilew:200,tilerow:8,gapx:1000,gapy:0}); 
+		// gbox.addTiles({id:'img_e_copter7',image:'e_copter',tileh:200,tilew:200,tilerow:8,gapx:1200,gapy:0}); 
+		// gbox.addTiles({id:'img_e_copter8',image:'e_copter',tileh:200,tilew:200,tilerow:8,gapx:1400,gapy:0}); 
+		// Enemy destro-car image (sprite sheet)
+		gbox.addTiles({id:'enemy2',image:'e_dcar',tileh:100,tilew:100,tilerow:8,gapx:0,gapy:0});
+		// gbox.addTiles({id:'img_e_dcar1',image:'e_dcar',tileh:100,tilew:100,tilerow:8,gapx:0,gapy:0});
+		// gbox.addTiles({id:'img_e_dcar2',image:'e_dcar',tileh:100,tilew:100,tilerow:8,gapx:100,gapy:0});
+		// gbox.addTiles({id:'img_e_dcar3',image:'e_dcar',tileh:100,tilew:100,tilerow:8,gapx:200,gapy:0});
+		// gbox.addTiles({id:'img_e_dcar4',image:'e_dcar',tileh:100,tilew:100,tilerow:8,gapx:300,gapy:0});
+		// gbox.addTiles({id:'img_e_dcar5',image:'e_dcar',tileh:100,tilew:100,tilerow:8,gapx:400,gapy:0});
+		// gbox.addTiles({id:'img_e_dcar6',image:'e_dcar',tileh:100,tilew:100,tilerow:8,gapx:500,gapy:0});
+		// gbox.addTiles({id:'img_e_dcar7',image:'e_dcar',tileh:100,tilew:100,tilerow:8,gapx:600,gapy:0});
+		// gbox.addTiles({id:'img_e_dcar8',image:'e_dcar',tileh:100,tilew:100,tilerow:8,gapx:700,gapy:0});
+		// Enemy tank image (sprite sheet)
+		gbox.addTiles({id:'enemy3',image:'e_tank',tileh:200,tilew:200,tilerow:8,gapx:0,gapy:0}); 
+		// gbox.addTiles({id:'img_e_tank1',image:'e_tank',tileh:200,tilew:200,tilerow:8,gapx:0,gapy:0}); 
+		// gbox.addTiles({id:'img_e_tank2',image:'e_tank',tileh:200,tilew:200,tilerow:8,gapx:200,gapy:0}); 
+		// gbox.addTiles({id:'img_e_tank3',image:'e_tank',tileh:200,tilew:200,tilerow:8,gapx:400,gapy:0}); 
+		// gbox.addTiles({id:'img_e_tank4',image:'e_tank',tileh:200,tilew:200,tilerow:8,gapx:600,gapy:0}); 
+		// gbox.addTiles({id:'img_e_tank5',image:'e_tank',tileh:200,tilew:200,tilerow:8,gapx:800,gapy:0}); 
+		// gbox.addTiles({id:'img_e_tank6',image:'e_tank',tileh:200,tilew:200,tilerow:8,gapx:1000,gapy:0}); 
+		// gbox.addTiles({id:'img_e_tank7',image:'e_tank',tileh:200,tilew:200,tilerow:8,gapx:1200,gapy:0}); 
+		// gbox.addTiles({id:'img_e_tank8',image:'e_tank',tileh:200,tilew:200,tilerow:8,gapx:1400,gapy:0}); 
+		// Logo image
+		gbox.addTiles({id:'img_logo',image:'logo',tileh:836,tilew:1200,tilerow:1,gapx:0,gapy:0}); 
+		// Tower level one image (sprite sheet)
+		gbox.addTiles({id:'tower1',image:'twr_lev_one',tileh:200,tilew:200,tilerow:8,gapx:0,gapy:0}); 
+		// gbox.addTiles({id:'img_t_lvl_one1',image:'twr_lev_one',tileh:200,tilew:200,tilerow:8,gapx:0,gapy:0}); 
+		// gbox.addTiles({id:'img_t_lvl_one2',image:'twr_lev_one',tileh:200,tilew:200,tilerow:8,gapx:200,gapy:0}); 
+		// gbox.addTiles({id:'img_t_lvl_one3',image:'twr_lev_one',tileh:200,tilew:200,tilerow:8,gapx:400,gapy:0}); 
+		// gbox.addTiles({id:'img_t_lvl_one4',image:'twr_lev_one',tileh:200,tilew:200,tilerow:8,gapx:600,gapy:0}); 
+		// gbox.addTiles({id:'img_t_lvl_one5',image:'twr_lev_one',tileh:200,tilew:200,tilerow:8,gapx:800,gapy:0}); 
+		// gbox.addTiles({id:'img_t_lvl_one6',image:'twr_lev_one',tileh:200,tilew:200,tilerow:8,gapx:1000,gapy:0}); 
+		// gbox.addTiles({id:'img_t_lvl_one7',image:'twr_lev_one',tileh:200,tilew:200,tilerow:8,gapx:1200,gapy:0}); 
+		// gbox.addTiles({id:'img_t_lvl_one8',image:'twr_lev_one',tileh:200,tilew:200,tilerow:8,gapx:1400,gapy:0}); 
+		// Tower level two image (sprite sheet)
+		gbox.addTiles({id:'tower2',image:'twr_lev_two',tileh:200,tilew:200,tilerow:8,gapx:0,gapy:0}); 
+		// gbox.addTiles({id:'img_t_lvl_two1',image:'twr_lev_two',tileh:200,tilew:200,tilerow:8,gapx:0,gapy:0}); 
+		// gbox.addTiles({id:'img_t_lvl_two2',image:'twr_lev_two',tileh:200,tilew:200,tilerow:8,gapx:200,gapy:0}); 
+		// gbox.addTiles({id:'img_t_lvl_two3',image:'twr_lev_two',tileh:200,tilew:200,tilerow:8,gapx:400,gapy:0}); 
+		// gbox.addTiles({id:'img_t_lvl_two4',image:'twr_lev_two',tileh:200,tilew:200,tilerow:8,gapx:600,gapy:0}); 
+		// gbox.addTiles({id:'img_t_lvl_two5',image:'twr_lev_two',tileh:200,tilew:200,tilerow:8,gapx:800,gapy:0}); 
+		// gbox.addTiles({id:'img_t_lvl_two6',image:'twr_lev_two',tileh:200,tilew:200,tilerow:8,gapx:1000,gapy:0}); 
+		// gbox.addTiles({id:'img_t_lvl_two7',image:'twr_lev_two',tileh:200,tilew:200,tilerow:8,gapx:1200,gapy:0}); 
+		// gbox.addTiles({id:'img_t_lvl_two8',image:'twr_lev_two',tileh:200,tilew:200,tilerow:8,gapx:1400,gapy:0}); 
+		// Map
+		gbox.addTiles({id:'img_map',image:'cels',tileh:4,tilew:4,tilerow:10,gapx:0,gapy:36});
+	
+		// -----------------------------------------------------------------------------------------		
+		// Audio files
+		// -----------------------------------------------------------------------------------------
+		gbox.addAudio('snd_base_fire',['resources/tdsounds/base_fire.wav','resources/tdsounds/base_fire.ogg'],{channel:'sfx'}); // Sound of base burning
+		gbox.addAudio('snd_base_hit',['resources/tdsounds/base_hit.wav','resources/tdsounds/base_hit.ogg'],{channel:'sfx'}); // Sound of base being hit
+		gbox.addAudio('snd_enemy_copter',['resources/tdsounds/enemy_copter.wav','resources/tdsounds/enemy_copter.ogg'],{channel:'sfx'}); // Sound of enemy helicopter passing by
+		gbox.addAudio('snd_enemy_dcar',['resources/tdsounds/enemy_dcar.wav','resources/tdsounds/enemy_dcar.ogg'],{channel:'sfx'}); // Sound of enemy destro-car passing by
+		gbox.addAudio('snd_enemy_tank',['resources/tdsounds/enemy_tank.wav','resources/tdsounds/enemy_tank.ogg'],{channel:'sfx'}); // Sound of enemy tank passing by
+		gbox.addAudio('snd_tower_bullet',['resources/tdsounds/tower_bullet.wav','resources/tdsounds/tower_bullet.ogg'],{channel:'sfx'}); // Sound of tower shooting with regular ammo
+		gbox.addAudio('snd_tower_mortar',['resources/tdsounds/tower_mortar.wav','resources/tdsounds/tower_mortar.ogg'],{channel:'sfx'}); // Sound of tower shooting with mortar rounds
+		gbox.addAudio('snd_tower_rocket_lg',['resources/tdsounds/tower_rocket_lg.wav','resources/tdsounds/tower_rocket_lg.ogg'],{channel:'sfx'}); // Sound of tower shooting with larger rocket
+		gbox.addAudio('snd_tower_rocket_sm',['resources/tdsounds/tower_rocket_sm.wav','resources/tdsounds/tower_rocket_sm.ogg'],{channel:'sfx'}); // Sound of tower shooting with smaller rocket
+		gbox.addAudio('ingame',['resources/tdsounds/background.wav','resources/tdsounds/background.ogg'],{channel:'bgmusic',loop:true}); // This one is the background ingame music to be looped
+
+		// -----------------------------------------------------------------------------------------
+		// Downloads all the needed resources and runs the 'go' function when it's done loading.
+		// -----------------------------------------------------------------------------------------
+		gbox.loadAll(go); 
+		
+	}, false);
+
+	
+	// =========================================================================================
+	// This is called after all of the resources are loaded and ready.
+	// =========================================================================================
+	function go() {
+	  
+		// -----------------------------------------------------------------------------------------
+		// Groups can be used for grouped collision detection and for rendering order.
+		// For audio in game, we have to create virtual channels.
+		// -----------------------------------------------------------------------------------------
+		gbox.setGroups(['background','player','enemy','sparks','gamecycle']);
+		gbox.setAudioChannels({bgmusic:{volume:0.8},sfx:{volume:1.0}}); 
+
+		maingame=gamecycle.createMaingame('gamecycle','gamecycle');
+		maingame.bullettimer=0; 																	// Keeps the game still for a while.
+		
+		// -----------------------------------------------------------------------------------------
+		// This method is called for every new level.
+		// -----------------------------------------------------------------------------------------
+		maingame.changeLevel=function(level) {
+			
+			if (level==null) level=1;																// Initialize game level
+			maingame.level=level; 																	// Keep track of the current level within maingame
+			maingame.hud.setValue('stage','value','STAGE '+level);
+
+			// Prepare map. Every stage is the same level but you can generate a new level each 'changeLevel' call, using the 'level' argument value.
+			// This is just an array with the tile id or NULL for an empty transparent space.
+			map=help.finalizeTilemap({ // finalizeTilemap does some magic to the map object: calculate real width/height of the map in pixels and values the 'h' and 'w' property.
+				tileset:'img_map', // This is the tileset used for rendering the map.
+				map:help.asciiArtToMap([ // Hey, wait! This is an ascii art of the map? Yes! 'asciiArtToMap' converts an array of string in an array of arrays, using...
+				'||T----------------------------------------------------TxxT----------------------------------------------------T||',
+				'||||                                                  ||xx||                                                  ||||',
+				'||||   .   .   .   .   .   .   .   .   .   .   .   .  ||xx||   .   .   .   .   .   .   .   .   .   .   .   .  ||||',
+				'||||                                                  ||xx||                                                  ||||',
+				'||||   .  T------------T   .  T----------------T   .  ||xx||   .  T----------------T   .  T------------T   .  ||||',
+				'||||      ||xxxxxxxxxx||      ||xxxxxxxxxxxxxx||      ||xx||      ||xxxxxxxxxxxxxx||      ||xxxxxxxxxx||      ||||',
+				'||||   o  ||xxxxxxxxxx||   .  ||xxxxxxxxxxxxxx||   .  ||xx||   .  ||xxxxxxxxxxxxxx||   .  ||xxxxxxxxxx||   o  ||||',   
+				'||||      ||xxxxxxxxxx||      ||xxxxxxxxxxxxxx||      ||xx||      ||xxxxxxxxxxxxxx||      ||xxxxxxxxxx||      ||||',
+				'||||   .  L------------J   .  L----------------J   .  L----J   .  L----------------J   .  L------------J   .  ||||',
+				'||||                                                                                                          ||||',
+				'||||   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  ||||',
+				'||||                                                                                                          ||||',
+				'||||   .  T------------T   .  T----T   .  T----------------------------T   .  T----T   .  T------------T   .  ||||',
+				'||||      ||xxxxxxxxxx||      ||xx||      ||xxxxxxxxxxxxxxxxxxxxxxxxxx||      ||xx||      ||xxxxxxxxxx||      ||||',
+				'||||   .  L------------J   .  ||xx||   .  L------------TxxT------------J   .  ||xx||   .  L------------J   .  ||||',
+				'||||                          ||xx||                  ||xx||                  ||xx||                          ||||',
+				'||||   .   .   .   .   .   .  ||xx||   .   .   .   .  ||xx||   .   .   .   .  ||xx||   .   .   .   .   .   .  ||||',
+				'||||                          ||xx||                  ||xx||                  ||xx||                          ||||',
+				'||L--------------------T   .  ||xxL------------T      ||xx||      T------------Jxx||   .  T--------------------J||',
+				'L--------------------T||      ||xxxxxxxxxxxxxx||      ||xx||      ||xxxxxxxxxxxxxx||      ||T--------------------J',
+				'                    ||||   .  ||xxT------------J      L----J      L------------Txx||   .  ||||                    ',
+				'                    ||||      ||xx||                                          ||xx||      ||||                    ',
+				'                    ||||   .  ||xx||                                          ||xx||   .  ||||                    ',
+				'                    ||||      ||xx||                                          ||xx||      ||||                    ',
+				'                    ||||   .  ||xx||      T---------~~~~~~~~~~---------T      ||xx||   .  ||||                    ',
+				'---------------------J||      ||xx||      ||                          ||      ||xx||      ||L---------------------',
+				'-----------------------J   .  L----J      ||                          ||      L----J   .  L-----------------------',
+				'                                          ||                          ||                                          ',
+				'                           .              ||                          ||               .                          ',
+				'                                          ||                          ||                                          ',
+				'-----------------------T   .  T----T      ||                          ||      T----T   .  T-----------------------',
+				'---------------------T||      ||xx||      ||                          ||      ||xx||      ||T---------------------',
+				'                    ||||   .  ||xx||      L----------------------------J      ||xx||   .  ||||                    ',
+				'                    ||||      ||xx||                                          ||xx||      ||||                    ',
+				'                    ||||   .  ||xx||                                          ||xx||   .  ||||                    ',
+				'                    ||||      ||xx||                                          ||xx||      ||||                    ',
+				'                    ||||   .  ||xx||      T----------------------------T      ||xx||   .  ||||                    ',
+				'T--------------------J||      ||xx||      ||xxxxxxxxxxxxxxxxxxxxxxxxxx||      ||xx||      ||L--------------------T',
+				'||T--------------------J   .  L----J      L------------TxxT------------J      L----J   .  L--------------------T||',
+				'||||                                                  ||xx||                                                  ||||',
+				'||||   .   .   .   .   .   .   .   .   .   .   .   .  ||xx||   .   .   .   .   .   .   .   .   .   .   .   .  ||||',
+				'||||                                                  ||xx||                                                  ||||',
+				'||||   .  T------------T   .  T----------------T   .  ||xx||   .  T----------------T   .  T------------T   .  ||||',
+				'||||      ||xxxxxxxxxx||      ||xxxxxxxxxxxxxx||      ||xx||      ||xxxxxxxxxxxxxx||      ||xxxxxxxxxx||      ||||',
+				'||||   .  L--------Txx||   .  L----------------J   .  L----J   .  L----------------J   .  ||xxT--------J   .  ||||',
+				'||||              ||xx||                                                                  ||xx||              ||||',
+				'||||   o   .   .  ||xx||   .                                                           .  ||xx||   .   .   o  ||||',
+				'||||              ||xx||                                                                  ||xx||              ||||',
+				'||L--------T   .  ||xx||   .  T----T   .  T----------------------------T   .  T----T   .  ||xx||   .  T--------J||',
+				'||xxxxxxxx||      ||xx||      ||xx||      ||xxxxxxxxxxxxxxxxxxxxxxxxxx||      ||xx||      ||xx||      ||xxxxxxxx||',
+				'||T--------J   .  L----J   .  ||xx||   .  L------------TxxT------------J   .  ||xx||   .  L----J   .  L--------T||',
+				'||||                          ||xx||                  ||xx||                  ||xx||                          ||||',
+				'||||   .   .   .   .   .   .  ||xx||   .   .   .   .  ||xx||   .   .   .   .  ||xx||   .   .   .   .   .   .  ||||',
+				'||||                          ||xx||                  ||xx||                  ||xx||                          ||||',
+				'||||   .  T--------------------JxxL------------T   .  ||xx||   .  T------------JxxL--------------------T   .  ||||',
+				'||||      ||xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx||      ||xx||      ||xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx||      ||||',
+				'||||   .  L------------------------------------J   .  ||xx||   .  L------------------------------------J   .  ||||',
+				'||||                                                  ||xx||                                                  ||||',
+				'||||   .   .   .   .   .   .   .   .   .   .   .   .  ||xx||   .   .   .   .   .   .   .   .   .   .   .   .  ||||',
+				'||||                                                  ||xx||                                                  ||||',
+				'||L----------------------------------------------------JxxL----------------------------------------------------J||',
+				],[[null,'  '],[0,'||'],[1,'--'],[2,'L-'],[3,'-J'],[4,'T-'],[5,'-T'],[6,'~~'],[7,'xx'],[8,' .'],[9,' o']]),
+				tileIsSolid:function(obj,t){ // Checking if the tile 't' is a wall, so...
+						return (t!==null)&& ((t<6)|| ((t==6)&&(obj.status!='goout')&&(obj.status!='goin'))); // The enemy's door
+				}
+			 });
+			
+			// Create canvas to fit the map height and width calculated by finalizeMap method.
+			gbox.createCanvas('mapcanvas',{w:map.w,h:map.h}); 
+			// Add the map in the 'map' object into the just created 'mapcanvas'.
+			gbox.blitTilemap(gbox.getCanvasContext('mapcanvas'),map); 
+			
+			this.newLife(); // Call the local 'newLife' method for every new level.
+	  }
+	  
+	  // This event is triggered every time the player 'reborn'. As you've seen, is manually called in the last line of 'changelevel'
+	  maingame.newLife=function(up) {
+		// Let's clean up the level from the enemy, sparks (visual effects like explosions)
+		gbox.trashGroup('sparks');
+		gbox.trashGroup('enemy');
+		gbox.purgeGarbage(); // the gbox module have a garbage collector that runs sometime. Let's call this manually, for optimization (and better reinitialization)
+		maingame.bullettimer=0; // Reset the bullettimer, so the game can continue normally.
+		toys.topview.spawn(gbox.getObject('player','base'),{x:map.hw-6,y:map.hh+50,accx:0,accy:0,xpushing:false,ypushing:false}); // Our 'base' object into the 'player' group spawns in the middle of the map every time it spawns.
+		maingame.addEnemy({id:1,x:map.hw-24,y:map.hh-24}); // Enemies are added here
+		maingame.addEnemy({id:2,x:map.hw-24,y:map.hh-24});
+		maingame.addEnemy({id:3,x:map.hw+24,y:map.hh-24});
+		gbox.playAudio('ingame'); // Start playing the ingame music.
+	  }
+	
+		
+	// This method is called before starting the game, after the startup menu. Everything vital is done here, once per play.
+	maingame.initializeGame=function() {
+	
+		// Maingame gives an 'hud' object that is rendered over everything. Really useful for indicators, like lives etc. The first thing we do is to populate this object.
+		maingame.hud.setWidget('lives',{widget:'symbols',minvalue:0,value:3-maingame.difficulty,maxshown:3,tileset:'base',tiles:[5],dx:240,dy:70,gapx:16,gapy:0}); // The classic life indicator, with repated base symbols. Note the 'difficulty usage' ;)
+		maingame.hud.setWidget('stage',{widget:'label',font:'small',value:'',dx:0,dw:gbox.getScreenW()-5,dy:gbox.getScreenH()-13,halign:gbox.ALIGN_RIGHT,clear:true}); // The label with the stage name (low creativity: STAGE 1, STAGE 2 etc). Is empty for now, will be filled when a new level starts.
+		
+		// An object will draw the map on the screen
+		 gbox.addObject({
+			id:'bg', // This is the object ID
+			group:'background', // Is in the 'backround' group, that is the lower group in the 'setGroups' list. Will be drawn for first.
+			initialize:function() { // This action is executed the first time the object is called, so...
+				gbox.setCameraY(2,{w:map.w,h:map.h}); // We place the camera a bit down, since the full map doesn't fit the screen.
+			},
+			blit:function() { // Then, the most important action: the 'blit', where object are drawn on the screen.
+				gbox.blitFade(gbox.getBufferContext(),{alpha:1}); // First let's clear the whole screen. Blitfade draws a filled rectangle over the given context (in this case, the screen)
+				gbox.blit(gbox.getBufferContext(),gbox.getCanvas('mapcanvas'),{dx:0,dy:0,dw:gbox.getCanvas('mapcanvas').width,dh:gbox.getCanvas('mapcanvas').height,sourcecamera:true}); // Simply draw the map on the screen.
+			}
+		  });
+		  
+		  
+		// Now, let's add our base. The player is usually added once per match and 'moved' in the map on level changes (as you've seen into the newLife method)	
+		gbox.addObject({
+			id:'base', // Every object has an ID for being picked up every time (we've used the ID into newLife)
+			group:'player', // ... and is put in a group (do you remember the setGroups command?)
+			tileset:'base', // Uses this tileset, generated during loading phase...
+			killed:false, // and, for now, was not killed.
+			
+			initialize:function() { // The 'initialize' method is called the first frame the object spawns and never more.
+				// We will use the topview toys, since base is... well... a top view game.
+				toys.topview.initialize(this,{
+					colh:gbox.getTiles(this.tileset).tileh, // Topview games offers semi-isometric features but we are not using reduced collision box, since is flat 2D
+					colw:gbox.getTiles(this.tileset).tilew,
+					staticspeed:2, // Topview gives accelleration to object by default but the player moves at static speed in base, without accellerations
+					nodiagonals:true, // The player cannot move in diagonal direction
+					noreset:true, // Do not reset moving state if any change is made, so base keep going straight
+					frames:{ // These are quite self explanatory
+						still:{ speed:2, frames:[0] },
+						hit:{speed:1,frames:[0,1,0,1]},
+						standup:{ speed:1, frames:[0] },
+						standdown:{ speed:1, frames:[0] },
+						standleft:{ speed:1, frames:[0] },
+						standright:{ speed:1, frames:[0] },
+						movingup:{speed:3,frames:[0,2,1,2] },
+						movingdown:{speed:3,frames:[0,4,3,4] },
+						movingleft:{speed:3,frames:[0,6,5,6] },
+						movingright:{speed:3,frames:[0,6,5,6] }
+					}
+					// What? Starting 'x' and 'y' are not here. That's because, when the first level starts, the 'newLife' calls 'spawn' over the player, setting the position.
+				});
+			},
+			
+			first:function() { // Usually everyting involving interacton is into the 'first' method.
+				this.counter=(this.counter+1)%10; // This line must be used in every object that uses animation. Is needed for getting the right frame (the 'frames' block few lines up)
+				
+				if (!this.killed&&!maingame.gameIsHold()&&!maingame.bullettimer) { // If base is still alive and the game is not 'hold' (level changing fadein/fadeouts etc.) and the 'bullet timer' is not stopping the game.
+				
+					// First of all, let's move.
+					var olddata=help.createModel(this,['x','y','accx','accy','xpushing','ypushing','facing']); // A little trick: base cannot change direction, if hits a wall, so we backup base's status here. Will restored if base hits the wall.
+					toys.topview.controlKeys(this,{left:'left',right:'right',up:'up',down:'down'}); // Set base's horizontal and vertical speed.
+					toys.topview.applyForces(this); // Moves base 
+					// Note that our base will keep going since we're not changing the speed given by controlKeys and applied by applyForces (i.e. toys.handleAccellerations)
+					toys.topview.tileCollision(this,map,'map',null,{tolerance:0,approximation:1}); // check tile collisions.
+																							  // tolerance indicates how 'rounded' the corners are (for turning precision - in base have to be precise but not too much, for anticipated turnings)
+																							  // Approximation is the distance in pixel of each check. Lower approximation is better but is slower. Usually using the lower between the tile size and the sprite height is enough.
+					if (this.touchedup||this.toucheddown||this.touchedleft||this.touchedright) { // If base hits some wall
+						help.copyModel(this,olddata); // the olddata properties are replaced to the local object
+						toys.topview.applyForces(this); // And is moved like we've done before, like the player hasn't changed direction.
+						toys.topview.tileCollision(this,map,'map',null,{tolerance:0,approximation:1});
+					}
+					
+					// The side warp. If base reach one of the left or right side of the map, is spawn on the other side,in the same direction
+					if ((this.x<0)&&(this.facing==toys.FACE_LEFT)) // If base reaches the left side of the map, facing left
+						this.x=map.w-this.w; // move base on right side
+					else if ((this.x>(map.w-this.w))&&(this.facing==toys.FACE_RIGHT)) // If base reaches the right side of the map, facing right
+						this.x=0; // move base on the left side.
+					
+					toys.topview.setFrame(this); // setFrame sets the right frame checking the facing and the defined animations in 'initialize'
+				}
+			},
+			
+			// The blit phase is the very last method called every frame. It should only draw the object on the bufferContext (i.e. the screen)
+			blit:function() {
+				if (!this.killed) // If the player is alive, then draw it on the screen. Is a nice trick, since is not needed to destroy/recreate the player every life.
+					gbox.blitTile(gbox.getBufferContext(),{tileset:this.tileset,tile:this.frame,dx:this.x,dy:this.y,fliph:this.fliph,flipv:this.flipv,camera:this.camera,alpha:1});
+					// That means: draw, from my tileset, a frame in position dx,dy flipping the sprite horizontally and/or vertcally, using the camera coords and with full opacity
+					// All the arguments are taken from this: the 'toys' values everything for doing something coherent from the genre of game you're using.
+					// So, our 'base' flips, moves and does animation automatically. Really nerds can code something more complex, skipping or integrating the
+					// 'toys' methods.
+			},
+			
+			// And now, a custom method. This one will kill the player and will be called by enemy, when colliding with base.
+			kill:function() {
+				if (!this.killed) {
+					this.killed=true; // Base is killed so make it invisible and on hold.
+					gbox.hitAudio('snd_base_fire'); // Play fire sound (for burning base)
+					maingame.hud.addValue('lives','value',-1); // Decrease the lives count.
+					maingame.playerDied({wait:50}); // Telling the main game cycle that the player died.
+					toys.generate.sparks.simple(this,'sparks',null,{tileset:this.tileset,frames:{speed:4,frames:[6,5,7,8,9,9,9,9]}});
+					// And here comes a common trick: the player is still where was killed and a 'spark' (i.e. unuseful animation) starts in the same place.
+					// This method allows many nice tricks, since avoid destruction/recreation of the player object, allow a respawn the player in the place it was killed very easily (switching
+					// the killed attribute. The 'spark.simple' method spawns a spark in the same position of the object in the first argument.
+				}
+			}
+
+		  });
+		  
+	 }
+	 
+	 // Now is the time to explain how to create a generator. Is nothing but a new method of maingame that generate an object at given position.
+	 maingame.addEnemy=function(data) { // Let's start with something that spawn a enemy. Objects as arguments are not only flexible, but you can give a name to the parameters or skipping them when calling.
+		// Enemies are objects too, like base.
+		gbox.addObject({
+			enemy_id:data.id, // We will give a number to each enemy, since their behaviour is quite similiar, with some exception I'll explain. Let's store this id here.
+			id:'enemy'+data.id, // The object name is derived from the passed ID. So, addEnemy({id:1}); will generate a 'enemy1' object.
+			group:'enemy', // Enemies are all on their group
+			tileset:'enemy'+data.id, // A nice trick, isn't it? Ghost ID 1 will pick the 'enemy1' tileset, that means a red enemy, ID 2 gets the light blue one and so on.
+			status:'inhouse', // We will use a 'status' property to check what the enemy is doing: if is in his house, waiting for going up, if is chasing base or if is escaping. At the begining it is in his house...
+			time:75, // ...and will stay there for 75 frames. 
+			
+			initialize:function() { // From now, go back to the base object for what I'm not commenting. You're getting better, so let's make the things harder :)
+				toys.topview.initialize(this,{
+					colh:gbox.getTiles(this.tileset).tileh, // That is like base...
+					colw:gbox.getTiles(this.tileset).tilew,
+					staticspeed:2,
+					nodiagonals:true,
+					noreset:true,
+					frames:{
+						still:{ speed:2, frames:[0] },
+						hit:{speed:1,frames:[0,1,0,1]},
+						standup:{ speed:1, frames:[0] },
+						standdown:{ speed:1, frames:[1] },
+						standleft:{ speed:1, frames:[2] },
+						standright:{ speed:1, frames:[2] },
+						movingup:{speed:1,frames:[0] },
+						movingdown:{speed:1,frames:[1] },
+						movingleft:{speed:1,frames:[2] },
+						movingright:{speed:1,frames:[2] }
+					},
+					x:data.x, // This time, we will place enemy on creation. We will destroy and recreate the enemy every time, since the status of enemies, bullets and foes rarely needs to be kept.
+					y:data.y
+				});
+			},
+			
+			first:function() {
+				this.counter=(this.counter+1)%10; // Our animation handler...
+				
+				var olddata=help.createModel(this,['x','y','accx','accy','facing']); // Just like base, we will use this to cancel a movement, if hits the wall.
+				if (!maingame.gameIsHold()&&!maingame.bullettimer) { // The killed condition is no longer here, since the enemy never die :(
+
+					switch (this.status) { // base does the same thing during the game but enemy, instead, are busy in many activities, like...
+					
+						case 'inhouse': { // ...bouncing up and down in their house.
+							// Now we're going into the interesting part: things that moves by itself. Every genre of game has their ways: shoot'em up uses usually scripted or procedural movement, platform games can
+							// have very complex scripts... For base, we're going to use the 'virtual stick' way: enemy moves exactly like base but moved by a 'virtual joystick' that we're going to move for him.
+							// Let's see how. There are several advantages on using virtual sticks, for example, we're using all the toys for deciding direction, movement and collisions.
+							if (this.facing == toys.FACE_UP) // If the enemy is facing up...
+								toys.topview.controlKeys(this,{pressup:1}); // ...we simulate to press up on his virtual joystick...
+							else
+								toys.topview.controlKeys(this,{pressdown:1}); // ...else we're pressing down.
+							toys.topview.applyForces(this); // Let's move the enemy...
+							toys.topview.tileCollision(this,map,'map',null,{tolerance:0,approximation:1}); // ...and check if is colliding with a wall.
+							if (this.touchedup||this.toucheddown) // If the enemy touched the border of the house...
+								this.facing=(this.facing==toys.FACE_UP?toys.FACE_DOWN:toys.FACE_UP); // Invert their direction. The next cycle, the enemy will move in the opposite direction.
+							
+							if (this.time==0) // If is time to go out from the house
+								this.status='goout'; // Let's change the status
+							else
+								this.time--; // else keep counting the frames.
+								
+							break; // That's all. Our enemy is moving up and down.
+						}
+						
+						case 'goout': { // So we're leaving the house.
+							if (this.x<map.hw-this.hw) { // If we're on the left side of the map (note: finalizeTilemap have valued also half width and height of the map)
+								toys.topview.setStaticSpeed(this,1); // Slowly... (notes: we're using 'setStaticSpeed' when creating classic map games, when pixel-precision with the playfield is needed, like base or bomberman games)
+								toys.topview.controlKeys(this,{pressright:1}); //  Let's move to the right
+							} else if (this.x>map.hw-this.hw) { // If we're on the right side...
+								toys.topview.setStaticSpeed(this,1); // Slowly...
+								toys.topview.controlKeys(this,{pressleft:1}); //  Let's move to the left
+							} else { // And, if we're on the center
+								toys.topview.setStaticSpeed(this,2) // Faster!
+								toys.topview.controlKeys(this,{pressup:1}); //  Let's move up, out from the house
+							}
+							toys.topview.applyForces(this); // Let's move the enemy...
+							toys.topview.tileCollision(this,map,'map',null,{tolerance:0,approximation:1}); // ...and check if is colliding with a wall.
+							if (this.touchedup) // If the enemy touches a border up...
+								this.status='chase'; // We're out from the labirynth. Is the time to kick the base a$$!
+							break; // That is enough.
+						}
+						
+						case 'chase': { // We're enemy. And angry. Let's go after base!
+							toys.topview.setStaticSpeed(this,2) // Setting the moving speed.
+							// I've read somewhere that enemy have different 'aggressivity'. We're going to simulate this this way: we're creating two different behaviours. The first one moves the enemy
+							// toward base's position. The second one is completely random. How to decide how much 'aggressive' the enemy is?
+							var aggressivity=this.enemy_id; // First of all, let's calculate the aggressivity. Lower values means more aggressivity, so enemy 1 is more aggressive than enemy 4.
+							aggressivity-=maingame.level-1; // The, we're going to increase the aggressivity each level. so enemy 4 is aggressive 4 in level 1, aggressive 3 in level 2, aggressive 2 in level 3 and so on.
+							if (aggressivity<0) aggressivity=0; // If we're going mad (aggressivity<0) let's keep the calm: lower aggressivity threshold is 0.
+							if (help.random(0,aggressivity)==0) { // ...now enemy with lower aggressivity have more possibilites to move toward base. Higher aggressivity means more probabilities to get a random direction.
+								// This is the 'chasing' method. Is quite simple.
+								var base=gbox.getObject('player','base'); //  First of all, let's check where is base.
+								if ((this.facing==toys.FACE_UP)||(this.facing==toys.FACE_DOWN)) { // Enemies can't go in their opposite direction, so if we're moving horizontally, the next move is vertical and vice versa.
+									if (base.x>this.x) // is on my right?
+										toys.topview.controlKeys(this,{pressright:1}); //  Let's move right.
+									else if (base.x<this.x) // on my left?
+										toys.topview.controlKeys(this,{pressleft:1}); //  Let's move left.
+								} else {
+									if (base.y>this.y) // is under me?
+										toys.topview.controlKeys(this,{pressdown:1}); //  Let's move down.
+									else if (base.y<this.y) // is over me?
+										toys.topview.controlKeys(this,{pressup:1}); //  Let's move up.									
+								}
+							} else { // If we're moving randomly...
+								if ((this.facing==toys.FACE_UP)||(this.facing==toys.FACE_DOWN)) // The same condition of moving...
+									if (help.random(0,2)==0) toys.topview.controlKeys(this,{pressleft:1}); else toys.topview.controlKeys(this,{pressright:1}); // But direction is random, this time.
+								else
+									if (help.random(0,2)==0) toys.topview.controlKeys(this,{pressup:1}); else toys.topview.controlKeys(this,{pressdown:1});
+							}
+							toys.topview.applyForces(this); // Then we're moving to that direction...
+							toys.topview.tileCollision(this,map,'map',null,{tolerance:0,approximation:1}); // ...and check if is colliding with a wall.
+							break;
+						}
+						
+						case 'eaten': { // We were eaten by base. We need to go back to the enemy's house door, that is near the center of the map.
+							toys.topview.setStaticSpeed(this,4); // We're in a hurry now!
+							if ((this.x==map.hw-this.hw)&&(this.y==map.hh-38)) // If we've reached the door
+								this.status='goin'; // ... and let's enter the door
+							else {
+								if ((this.facing==toys.FACE_UP)||(this.facing==toys.FACE_DOWN)) { // The code is the same of the chase version, but we're going toward the center
+									if (map.hw-this.hw>this.x) toys.topview.controlKeys(this,{pressright:1});
+									else if (map.hw-this.hw<this.x)  toys.topview.controlKeys(this,{pressleft:1});
+								} else {
+									if (map.hh-38>this.y) toys.topview.controlKeys(this,{pressdown:1});
+									else if (map.hh-38<this.y) toys.topview.controlKeys(this,{pressup:1});
+								}
+							}
+							toys.topview.applyForces(this); // Then we're moving to that direction...
+							toys.topview.tileCollision(this,map,'map',null,{tolerance:0,approximation:1}); // ...and check if is colliding with a wall.
+							break;
+						}
+						
+						case 'goin': { // Now we're going back at home. Just moving down slowly...
+							toys.topview.setStaticSpeed(this,1) // Slowly...
+							toys.topview.controlKeys(this,{pressdown:1}); // Moving down...
+							toys.topview.applyForces(this); // Let's move...
+							toys.topview.tileCollision(this,map,'map',null,{tolerance:0,approximation:1}); // ...and check if is colliding with a wall.
+							if (this.toucheddown) { // If we've touched the house floor...
+								this.tileset=this.id; // change wear...								
+								toys.topview.setStaticSpeed(this,2) // Faster...
+								this.time=75; // We stay here for a while...
+								this.status='inhouse'; // ...and remember that after the 'inhouse', the cycle starts over again: 'goout' and 'chase'!
+							}
+							break;
+						}
+						
+						case 'escape':{ // If we're escaping from base, the logic is the reverse of chase, so...
+							toys.topview.setStaticSpeed(this,1) // Slowly
+							var base=gbox.getObject('player','base'); //  Where is base?
+							if ((this.facing==toys.FACE_UP)||(this.facing==toys.FACE_DOWN)) {
+								if (base.x>this.x) // is on my right?
+									toys.topview.controlKeys(this,{pressleft:1}); //  Let's move left|
+								else if (base.x<this.x) // on my left?
+									toys.topview.controlKeys(this,{pressright:1}); //  Let's move right!
+							} else {
+								if (base.y>this.y) // is under me?
+									toys.topview.controlKeys(this,{pressup:1}); //  Let's move up!.
+								else if (base.y<this.y) // is over me?
+									toys.topview.controlKeys(this,{pressdown:1}); //  Let's move down!									
+							}
+							toys.topview.applyForces(this); // Then we're moving to that direction...
+							toys.topview.tileCollision(this,map,'map',null,{tolerance:0,approximation:1}); // ...and check if is colliding with a wall.
+							this.time--; // Decrease the timer. This time means for how much time the enemy is vulnerable.
+							if (this.time>0) { // if we can be eaten...
+								// Now we're setting the tileset. Switching tilesets with the same number of frames allow to change dynamically how the character looks. This is a sample:
+								if (this.time>50) // If there is a lot of time left to be eaten...
+									this.tileset='enemycared'; // let's pick the 'scared' tileset (that one with blue color and wavy mouth)
+								else // ...else, if time is running out...
+									if (Math.floor(this.time/4)%2==0) // This is a little trick for make a think blinking using only a counter. The '/2' slow down the blink time and the '%2' gives an 'on/off' output. So...
+										this.tileset='enemycared'; // sometime picks the scared tileset...
+									else
+										this.tileset=this.id; // ...and sometime picks the original tileset.
+							} else {
+								this.tileset=this.id; // set the original tileset...
+								this.status='chase'; // and go back for chasing!
+							}
+
+
+							break;
+						}
+					}
+					
+					// Not scripted movements can end on 'still' condition (for example, we're trying to move toward a wall)
+					// So, since enemy never stop moving, we're going to make sure that a direction is taken, if the last movement touched a wall.
+					if ((this.status=='chase')||(this.status=='eaten')||(this.status=='escape')) { 
+					
+						if (this.touchedup||this.toucheddown||this.touchedleft||this.touchedright) { // If hitting a wall
+							help.copyModel(this,olddata); // we're reversing to the old movement...
+							toys.topview.controlKeys(this,{pressup:(this.facing==toys.FACE_UP),pressdown:(this.facing==toys.FACE_DOWN),pressleft:(this.facing==toys.FACE_LEFT),pressright:(this.facing==toys.FACE_RIGHT)}); // Push toward the old direction.
+							toys.topview.applyForces(this); // redo the moving...
+							toys.topview.tileCollision(this,map,'map',null,{tolerance:0,approximation:1}); // ...and check collision.
+							if (this.touchedup||this.toucheddown||this.touchedleft||this.touchedright) { //Uh-oh. If colliding here too, our enemy is really stuck.
+								for (var i=0;i<4;i++) // So we're trying to move in any of the four direction.
+									if (i!=((olddata.facing+2)%4)) { // Do you remember? Enemies cannot go back, so we're skipping the opposite direction. The trick: opposite direction is current direction +2. Have a look to the toys constants.
+										help.copyModel(this,olddata); // First, go back on the starting point...
+										toys.topview.controlKeys(this,{pressup:(i==toys.FACE_UP),pressdown:(i==toys.FACE_DOWN),pressleft:(i==toys.FACE_LEFT),pressright:(i==toys.FACE_RIGHT)}); // Push one of the direction
+										toys.topview.applyForces(this); // redo the moving...
+										toys.topview.tileCollision(this,map,'map',null,{tolerance:0,approximation:1}); // ...and check collision again.
+										if (!(this.touchedup||this.toucheddown||this.touchedleft||this.touchedright)) break; //  If we've not touched anything, we're no longer stuck!
+										// Else, we'll try the other direction
+									}
+								// If we're here, a valid direction was taken. YAY!
+							}
+						}
+					
+					}
+					
+					toys.topview.setFrame(this); // Every remember to call this at least once :)
+
+					// The side warp is valid for enemy too! :)
+					if ((this.x<0)&&(this.facing==toys.FACE_LEFT))  this.x=map.w-this.w;
+					else if ((this.x>(map.w-this.w))&&(this.facing==toys.FACE_RIGHT)) this.x=0;
+					
+					// Then... let's bug base a bit
+					var base=gbox.getObject('player','base'); // As usual, first we pick our base object...
+					if (gbox.collides(this,base,2)) { // If we're colliding with base, with a tolerance of 2 pixels...
+						if (this.status=='chase') { // and we're hunting him...
+							maingame.bullettimer=10; // ...stop the game for a while.
+							base.kill(); // ...kill base. 'kill' is the custom method we've created into the base object.
+						} else if (this.status=='escape') { // else, if we were escaping from base (uh oh...)
+							gbox.hitAudio('eatenemy'); // Play the enemy-eaten sound.
+							maingame.bullettimer=10; // ...stop the game for a while.
+							this.tileset='enemyeaten'; // change wear...
+							this.status='eaten'; // ...and let's go back to the house...
+						}
+					}
+
+				}
+			},
+			
+			blit:function() { // In the blit phase, we're going to render the enemy on the screen, just like base.
+				gbox.blitTile(gbox.getBufferContext(),{tileset:this.tileset,tile:this.frame,dx:this.x,dy:this.y,fliph:this.fliph,flipv:this.flipv,camera:this.camera,alpha:1});
+			}
+
+		  });
+	 
+	 
+	 }
+	 
+	 // Some final touch to the maingame object...
+	  maingame.gameIsOver=function() { // This method is called by maingame itself to check if the game is over or not. So...
+		var isGameover=maingame.hud.getValue('lives','value')==0; // the game is REALLY over when lives counter reaches the zero.
+		return isGameover; // Finally, returning if the game is ended or not.
+	  }
+	  
+	 // And now let's do something not related with enemy, bases, pills and maps. Usually random things and hidden countings happens during the gameplay, so...
+	 maingame.gameEvents=function() { // This method happens every frame of the gameplay. You can keep here game timers or make happen random things, like...
+		if (this.bullettimer>0) this.bullettimer--; // ...keep updated the 'bullet time' counter...
+		// if (maingame.pillscount==0) // ...check if the map is clear...
+		//	maingame.gotoLevel(maingame.level+1); // ...and warp to the next level, if true.
+		
+		// TODO == INCREASE LEVEL
+	  }
+	 
+	// Last but not least, the intro screen.
+	// As you've seen, there are a bunch of method that are called by the 'maingame' during the game life. We've used the default behaviour for most of them (the 'let's begin' message, the 'gameover' screen etc.)
+	// but all of them are customizable. In this case, we're going to create a custom intro screen.
+	maingame.gameTitleIntroAnimation=function(reset) { 
+		if (reset) { // 'reset' is true before the first frame of the intro screen. We can prepare the intro animation...
+			toys.resetToy(this,'rising'); // Like resetting a local toy. Some of the toys are 'helpers': they use a local datastore of an object and does stuff, when called. For example: we're reserving a data store called 'rising' to the 'maingame' object.
+		} else { // Then, when is the time to render our animation...
+			gbox.blitFade(gbox.getBufferContext(),{alpha:1}); // First clear up the screen...
+			toys.logos.linear(this,'rising',{image:'logo',x:gbox.getScreenHW()-gbox.getImage('logo').hwidth,y:20,sx:gbox.getScreenHW()-gbox.getImage('logo').hwidth,sy:gbox.getScreenH(),speed:1,audioreach:'eatenemy'}); // Then we're telling to the 'linear' toy (which renders something that moves from a point to another and eventually plays an audio on end) to use the 'rising' data store, for keeping his values.
+		}
+	};
+
+	  
+	 // That's all. Please, gamebox... run the game!
+	  gbox.go();
+	  
+	  	maingame.pressStartIntroAnimation=function(reset) {
+		if (reset) {
+			toys.resetToy(this,"default-blinker");
+		} else {
+			toys.text.blink(this,"default-blinker",gbox.getBufferContext(),{font:"small",text:"PRESS Z TO START",valign:gbox.ALIGN_MIDDLE,halign:gbox.ALIGN_CENTER,dx:0,dy:Math.floor(gbox.getScreenH()/3),dw:gbox.getScreenW(),dh:Math.floor(gbox.getScreenH()/3)*2,blinkspeed:10});
+		return gbox.keyIsHit("a");
+		}
+	};
+		  
+	}
+	
+
+	</script>
+</html>

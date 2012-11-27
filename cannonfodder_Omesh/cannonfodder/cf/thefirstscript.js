@@ -25,7 +25,8 @@ var maze; // The maze array, with pills and walls
 				title:"Capman", // ... Just changing the game title...
 				splash:{footnotes:["Music 'Only Heroes Win at Skee Ball' by Greenleo","Contact him: greenleo.bandcamp.com"]}, // And adding some credits to Greenleo on the loading screen, which made the main theme. Great work! Trivia: is also the Akiba Hero 2nd song :)
 				width: screenwidth,
-				height: screenheight
+				height: screenheight,
+				zoom: 1.35
 			});
 			document.body.style.backgroundColor="#FFFFFF";
 
@@ -39,7 +40,7 @@ var maze; // The maze array, with pills and walls
 			
 			//added by Omesh
 			gbox.addImage("chopper","cf/fodder.png");
-			gbox.addImage("missile","cf/missile.png");
+			gbox.addImage("missile","cf/m.png");
 			
 			gbox.addFont({id:"small",image:"font",firstletter:" ",tileh:8,tilew:8,tilerow:255,gapx:0,gapy:0}); // Font are mapped over an image, setting the first letter, the letter size, the length of all rows of letters and a horizontal/vertical gap.
 			// Sometime you can find pixel fonts with multiple colors, one per row/block. You can map multiple fonts on the same image, so create many fonts, one for each color.
@@ -238,5 +239,14 @@ maingame.gameTitleIntroAnimation=function(reset) {
 
 // That's all. Please, gamebox... run the game!
   gbox.go();
+  
+  maingame.pressStartIntroAnimation=function(reset) {
+		if (reset) {
+			toys.resetToy(this,"default-blinker");
+		} else {
+			toys.text.blink(this,"default-blinker",gbox.getBufferContext(),{font:"small",text:"PRESS Z TO START",valign:gbox.ALIGN_MIDDLE,halign:gbox.ALIGN_CENTER,dx:0,dy:Math.floor(gbox.getScreenH()/3),dw:gbox.getScreenW(),dh:Math.floor(gbox.getScreenH()/3)*2,blinkspeed:10});
+		return gbox.keyIsHit("a");
+		}
+	};
   
 }
